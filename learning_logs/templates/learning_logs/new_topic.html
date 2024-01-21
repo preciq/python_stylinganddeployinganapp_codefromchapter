@@ -1,0 +1,13 @@
+{% extends "learning_logs/base.html" %}
+{% block content %}
+<p>Add a new topic:</p>
+<form action="{% url 'learning_logs:new_topic' %}" method='post'>
+    {% csrf_token %}
+    <!--
+    This token is used to protect against CSRF attacks, which trick the victim into submitting a malicious request. It ensures that the form being submitted is from a trusted site and not from a malicious third-party site. The server checks the token when the form is submitted and if it doesn't match the one that was sent, the request is rejected.
+    -->
+    {{ form.as_div }}
+    <button name="submit">Add topic</button>
+</form>
+{% endblock content %}
+<!--Page for adding a new topic-->

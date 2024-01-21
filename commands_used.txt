@@ -1,0 +1,219 @@
+python3 -m venv ll_env
+# This creates a new python environment; we call it ll_env
+
+source ll_env/bin/activate
+# this activates (takes us into) the created ll_env environment
+# now, anything we install is only installed inside of the ll_env environment
+# it is NOT installed globally
+
+deactivate
+# this lets us leave the ll_env environment and return to the global environment
+
+pip install --upgrade pip
+# installs (and upgrades) pip inside the ll_env environment
+# note that we don't need pip3 here since this is not global
+
+pip install django
+# installs django for our ll_env environment
+
+django-admin startproject ll_project .
+# creates a new project in the root directory (highest level, in this case the same folder as the ll_env environment)
+    # that's why we use '.', to specify that this task should happen in the root directory
+# it is called ll_project
+
+python manage.py migrate
+# manage.py is created by default in a django project
+# it has basic commands to manage various aspects of a Django project, such as database migrations
+# the commands to modify (and create) a database are contained in manage.py
+# so when we run manage.py alongside migrate, we are telling django to modify (or create if this is the first time) a database
+# the result is a db.sqlite3 database in the directory
+# migrate = modify/create
+
+python manage.py runserver
+# this executes the django application (deploys it for usage, typically on port 8000 on the localhost)
+    # have it go on a different port via --> manage.py runserver 8001
+        # this runs on port 8001
+
+# the above lines basically create the backend for the app (the server where the app is hosted)
+# the front end is created below
+
+# create another terminal window for this one, leave the app running
+python manage.py startapp learning_logs
+# this line creates the infrastructure for the app (the apps front end)
+# we will call the app "learning_logs"
+
+# we now open one of the files created by the "startapp" command, "models.py", in the newly created "learning_logs"
+# here, we added a new Model class which defines how we want to save some data (specifically the column structure in the SQL database)
+# and then we added our newly created app "learning_logs" to "settings.py" in ll_project, so that it is included in the project
+
+# however, we need to update the database so that it takes into account our desired changes and defined structure in "Topic"
+python manage.py makemigrations learning_logs
+# this line modifies the database to accomodate the desired Models defined in learning_logs (just "Topic" for now)
+    # I think this line actually makes a new table in the SQL database called "Topic", which has the fields defined in "Topic" as columns (i.e. text, date_added)
+# note that these changes have not yet been applied to the database. For that: 
+python manage.py migrate
+# we need this command. This applies the changes to the database
+
+# By default, django applications come with a section specifically for admins
+# we can create "super users", basically admins, using the following commands:
+python manage.py createsuperuser
+# this prompts user to create a super user (username prompt, email address and password)
+
+# to define the data/models a super user can interact with, we define them in the "admin.py" module in the app directory (learning_logs)
+# we add the Topic model to admin.py (see file for more) so that admin users have access to it
+
+# we then login to the application (via the UI, using the admin credentials we just created with "manage.py createsuperuser")
+    # login as an admin at the url http://localhost:8000/admin/
+# we should see the some default sections for admin generated, as well as a section for our app "learning_logs", along with a "Topic" field, which is editable
+    # we can add Topics using the + sign. Notice how we are asked to input some "Text" in a text field, which matches what we put in models.py in the Topic class
+
+# we can add some more Models so that they too are displayed on the website, i.e. an "Entry" model
+    # multiple Entries would be linked to a single topic (i.e. a user is charting progress on that topic)
+
+# after updating the Entry class, we must do what we did before, update the database. This again involves 2 steps:
+python manage.py makemigrations learning_logs
+python manage.py migrate
+
+# We also update the admin.py module in learning_logs to have Entries
+# the expected behavior is already defined via the database relationship/data structure in models.py
+
+# we can explore the data within the DB using django shell (i.e. the entries we've added, topics, etc.)
+python manage.py shell
+# run the following to see all the topics: 
+from learning_logs.models import Topic
+Topic.objects.all()
+# notice how this is python code. Essentially, the python shell allows us to open a (python) terminal into our django application and run python commands directly against the app
+
+# a for loop to print all the topics, line by line: 
+topics = Topic.objects.all()
+for topic in topics:
+(Shift + Enter, then tab)     print(topic.id, topic)
+(Shift + Enter, then tab)
+(Enter)
+
+# prints the first topic. interestingly the index starts at 1, not 0
+t = Topic.objects.get(id=1)
+t.text
+
+# prints the date_added field of the first topic
+t.date_added
+datetime.datetime(2022, 5, 20, 3, 33, 36, 928759, tzinfo=datetime.timezone.utc)
+
+# shows all entries related to the topic
+t.entry_set.all()
+
+
+# So far, we have only been using the default UI (the "view" of the application) provided by django
+# we can improve upon this by creating custom views (i.e. a defined home page view) and make this view to a particular url
+    # i.e. localhost:8000/home will take us to the homepage
+# we do this in urls.py module, in the ll_project folder
+# this is further linked to the urls.py module in the learning_logs folder
+    # which points to templates stored in /learning_logs/templates/learning_logs
+# with all of these changes done, now if we go to the baseurl (http://127.0.0.1:8000/), we should see the specified template we added with the above commands
+
+
+# So it looks like if we want to add new pages, there are 4 steps --> 
+# we first add a class to either models (for pages) or forms (for forms) in models.py/forms.py
+# we then add the url (path) this page or form will take in urls.py
+# we then add a class to views.py indicating what data this page will need to views.py
+# we finally add the html for the page, indicating how the page will look and what data the page needs (in templates folder)
+# all is done in the app folder (learning_logs in our case)
+
+
+# for user authentication, we will create a new app (to keep things organized)
+python manage.py startapp accounts
+# this new app must be added to INSTALLED_APPS, just like learning_logs was before (settings.py in ll_project)
+# its URLs must also be added to the central urls.py module in ll_project, also just like learning_logs
+
+# once this is done, can create a urls.py module for accounts app and add the auth url defaults
+# these also appear to not be needed in views since they are implemented by default, but an html file is required
+# for accounts app, these should be added to 'templates/registration/' directory within the accounts directory (needs to be created)
+# create login.html for login page
+
+# once this is added, add line to settings.py file that directs the user to the right place after logging in (the home page)
+# we also add a logout popup functionality (to base.html so users can logout from anywhere)
+# and we add a logout redirect to settings.py (meaning logging out will take the user back to the home page, unauthenticated)
+
+# testable with admin account that was previously created (ll_admin, 12345 if you want to try)
+
+# now, we must add the means for a user to create an account if they don't have one
+# we add the path to urls.py in accounts directory and register view to views.py module, same directory, and then add the html file for register in templates/registration
+# a registration link should also be added to the base.html so it is accessible in all pages
+
+# this allows users to create accounts (sup, sup12345 for testing) BUT it does not allow users to have their own personalized data
+# meaning one users topics will appear for the other users too 
+
+# for that, we need to ensure that users own their own data
+# for this, we modify, views.py module and settings.py in learning_logs to ensure users own data (see the file to understand how)
+# with the addition of @login_required to views we want users authenticated for, we now force users to be logged in before they can access any of these views
+
+# next, we link particular data to a user (so we know who created the data) 
+# we modify models.py (learning_logs) for this by adding this line: owner = models.ForeignKey(User, on_delete=models.CASCADE)
+
+# finally, we must apply these changes to the database with a migrate command: python manage.py makemigrations learning_logs
+# use the default value (1)
+# and then confirm the migration: python manage.py migrate
+
+# now, with all of this done, we proceed with showing the user only their specific topics (views.py on learning_logs), code is Topic.objects.filter(owner=request.user)
+# We must also ensure that one user cannot access another users data (they're given a 404 if they try), (views.py on learning_logs, add this line - if topic.owner != request.user:)
+    
+# lastly, we add logic so that new topics are associated with the logged in user
+# we do this via (views.py in learning_logs, new_topic)
+
+
+
+
+
+
+# Now, we add styling to the application to make it look nice, and also make it available to anyone on the internet (not just locally)
+# for this, we will use the "bootstrap" library for styling
+# and the platform.sh library for making the app available
+# first, install bootstrap --> pip install django-bootstrap5
+# once installed, add to settings.py (ll.project)
+
+# we will use bootstrap built in style Navbar static template to style this application
+# to see a list of all available templates on bootstrap --> https://getbootstrap.com
+# now, we will rewrite base.html (in learning_logs) with bootstrap (since all pages inherit this one, the changes here will reflect on the other pages too)
+
+# afterwards, we must also change the home page, index.html (add some styling there)
+# we also style the login page (login.html in accounts app dir); unlike the other pages, this doesn't require a complete overhaul
+
+# we also style the topics page (topics.html) in accounts app dir
+# and we style the individual topic page (topic.html), same dir
+# now we can run the app (python manage.py runserver) and go to port 8000 to view the changes 
+
+
+
+
+
+# now, we can deploy this application for remote access (we do this in learning_logs)
+# make a free account to do this here: https://platform.sh
+# install the platform.sh cli via --> curl -fsS https://platform.sh/cli/installer | php
+    # if that doesn't work --> https://docs.platform.sh/administration/cli.html; appears to be installable via homebrew
+
+# also need platformshconfig, which identifies if the project is running on local machine or on the platform.sh server
+# generate a requirements.txt file, this tells the server (remote) what dependancies learning_logs requires
+    # since learning_logs running locally just has the dependancies locally, but this is not the case on the server
+# do this with pip freeze > requirements.txt (activate ll_env first)
+# this generates all the dependancies installed in the current environment
+
+# some additional dependancies are needed for remote server to run learning logs
+# add another file next to requirements.txt called requirements_remote.txt and add additional requirements
+
+# platform.sh also requires some additional config files to run correctly (all hosting services require some config files)
+# make sure that hidden files are visible before proceeding, all of these start with a . (means they are hidden by default)
+
+# in the same directory as manage.py, create .platform.app.yaml and add correct contents
+    # this controls the overall deployment process (and is probably the main config file)
+
+# next, add .platform/routes.yaml
+    # this handles routing of the API requests
+
+# finally, we add the services.yaml file, in the same .platform file
+    # this specified (micro)services (other hosted stuff) that our project needs to run
+
+
+# we now need to modify settings.py to also work with platform.sh
+
+# we should also save our changes by installing git and committing our changes
+    # add unneeded files to .gitignore (make in same directory as .platform.app.yaml)
