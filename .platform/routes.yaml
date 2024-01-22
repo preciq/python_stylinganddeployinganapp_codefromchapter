@@ -1,9 +1,9 @@
 # Each route describes how an incoming URL will be processed by Platform.sh.
+
 "https://{default}/":
-type: upstream
-upstream: "ll_project:http"
-# routes api requests to ll_project, which has all of the API requests defined in previous chapters 
+    type: upstream
+    upstream: "ll_project:http"
 
 "https://www.{default}/":
-type: redirect
-to: "https://{default}/"
+    type: redirect
+    to: "https://{default}/"

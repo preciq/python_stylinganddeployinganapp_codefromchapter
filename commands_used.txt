@@ -215,5 +215,53 @@ python manage.py startapp accounts
 
 # we now need to modify settings.py to also work with platform.sh
 
-# we should also save our changes by installing git and committing our changes
+# we need to also save our changes by installing git and committing our changes (you know how to do that already :D)
     # add unneeded files to .gitignore (make in same directory as .platform.app.yaml)
+
+
+# now, with everything in our local files setup, we should create a project on platform.sh
+    # cd into learning_logs and run --> platform login
+    # Y to ssh configuration
+# create the project: platform create (Y to organization)
+
+
+# finally, we push our code (just like github) to platform.sh, since everything is now setup
+    # command -> platform push
+
+
+    DELETE NOW ON REFINING SECTION
+
+# now the live server should be setup, but it is completely empty (no users or data)
+# let's start by adding a superuser
+    # run management commands by connecting to the server via an ssh shell --> platform environment:ssh
+    # create a superuser --> python manage.py createsuperuser
+    # for username --> ll_admin_live
+    # for password --> pick something eh
+    # exit shell after confirming successful creation --> exit
+
+# also set DEBUG = FALSE in settings.py module, as this is a security issue
+    # we don't want users to see sensitive app information that might not belong to them
+
+# commit and push these changes
+    # committing, you know, git add and commit
+    # to push --> platform push
+
+# now, we can proceed with adding custom pages (like we did with the local version in previous chapters)
+# adding a 404 page
+    # create the following: learning_logs/templates/404.html
+    # add some html to it for a 404 message
+# we can add a 500 page in the same way (in the same dir)
+
+# then modify settings.py to point to these files (DIRS field in settings.py)
+
+# git add, commit and platform push the changes
+
+
+
+# Lastly, note that platform.sh is a paid platform so you might want to delete projects that are no longer in use
+# we will delete this one
+# command --> platform project:delete
+# and also delete the remote git branch on platform 
+    # git remote remove platform
+
+# note that this does absolutely nothing to your local version of the project, it just removes it from platform.sh
